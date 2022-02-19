@@ -35,7 +35,7 @@ resource "helm_release" "chart" {
   wait_for_jobs              = tobool(lookup(var.extras, "wait_for_jobs", true))
   dynamic "set" {
     for_each = concat(
-      anytrue([(var.chart == "nfs-subdir-external-provisioner"), (var.no_set_defaults)]) ? [] : [for server in var.dns_servers : {
+      anytrue([(var.no_set_defaults), contains(var.exempt_values, var.chart)]) ? [] : [for server in var.dns_servers : {
         name  = "podDnsConfig.nameservers[${index(var.dns_servers, server)}]"
         value = server
       }],
