@@ -6,30 +6,30 @@ variable "middlewares" { type = list(map(string)) }
 variable "middlewares_namespace" { type = string }
 variable "repository" { type = string }
 
+variable "create_namespace" {
+  default = false
+  type    = bool
+}
+
 variable "traefik-api-version" {
-  type    = string
   default = "traefik.containo.us/v1alpha1"
+  type    = string
 }
 
 variable "no_set_defaults" {
-  type    = bool
   default = false
+  type    = bool
 }
 
 variable "dns_servers" {
-  type = list(string)
   default = [
     "8.8.8.8",
     "8.8.4.4",
   ]
+  type = list(string)
 }
 
 variable "env" {
-  type = map(object({
-    PUID = number
-    PGID = number
-    TZ   = string
-  }))
   default = {
     env = {
       PGID = 1000
@@ -37,6 +37,11 @@ variable "env" {
       TZ   = "America/Los_Angeles"
     }
   }
+  type = map(object({
+    PUID = number
+    PGID = number
+    TZ   = string
+  }))
 }
 
 variable "image" {
@@ -48,9 +53,7 @@ variable "image" {
 }
 
 variable "exempt_values" {
+  default     = ["nfs-subdir-external-provisioner"]
   description = "Charts to exempt from dynamic value parsing"
   type        = list(string)
-  default = [
-    "nfs-subdir-external-provisioner",
-  ]
 }

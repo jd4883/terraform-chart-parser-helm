@@ -1,84 +1,63 @@
 resource "helm_release" "chart" {
-  atomic                     = tobool(lookup(var.extras, "atomic", false))
+  atomic                     = local.atomic
   chart                      = var.chart
-  cleanup_on_fail            = tobool(lookup(var.extras, "cleanup_on_fail", true))
-  create_namespace           = false
-  dependency_update          = tobool(lookup(var.extras, "dependency_update", true))
-  description                = lookup(var.extras, "description", null)
-  devel                      = lookup(var.extras, "devel", null)
-  disable_crd_hooks          = tobool(lookup(var.extras, "disable_crd_hooks", false))
-  disable_openapi_validation = tobool(lookup(var.extras, "disable_openapi_validation", true))
-  disable_webhooks           = tobool(lookup(var.extras, "disable_webhooks", false))
-  force_update               = tobool(lookup(var.extras, "force_update", false))
-  keyring                    = lookup(var.extras, "keyring", null)
-  lint                       = tobool(lookup(var.extras, "lint", true))
-  max_history                = lookup(var.extras, "max_history", 0)
+  cleanup_on_fail            = local.cleanup_on_fail
+  create_namespace           = var.create_namespace
+  dependency_update          = local.dependency_update
+  description                = local.description
+  devel                      = local.devel
+  disable_crd_hooks          = local.disable_crd_hooks
+  disable_openapi_validation = local.disable_openapi_validation
+  disable_webhooks           = local.disable_webhooks
+  force_update               = local.force_update
+  keyring                    = local.keyring
+  lint                       = local.lint
+  max_history                = local.max_history
   name                       = local.name
   namespace                  = local.namespace
-  recreate_pods              = tobool(lookup(var.extras, "recreate_pods", false))
-  render_subchart_notes      = tobool(lookup(var.extras, "render_subchart_notes", true))
-  replace                    = tobool(lookup(var.extras, "replace", false))
+  recreate_pods              = local.recreate_pods
+  render_subchart_notes      = local.render_subchart_notes
+  replace                    = local.replace
   repository                 = var.repository
-  repository_ca_file         = lookup(var.extras, "repository_ca_file", null)
-  repository_cert_file       = lookup(var.extras, "repository_cert_file", null)
-  repository_key_file        = lookup(var.extras, "repository_key_file", null)
-  repository_password        = lookup(var.extras, "repository_password", null)
-  repository_username        = lookup(var.extras, "repository_username", null)
-  reset_values               = tobool(lookup(var.extras, "reset_values", false))
-  reuse_values               = tobool(lookup(var.extras, "reuse_values", true))
-  skip_crds                  = tobool(lookup(var.extras, "skip_crds", false))
-  timeout                    = lookup(var.extras, "timeout", 60)
+  repository_ca_file         = local.repository_ca_file
+  repository_cert_file       = local.repository_cert_file
+  repository_key_file        = local.repository_key_file
+  repository_password        = local.repository_password
+  repository_username        = local.repository_username
+  reset_values               = local.reset_values
+  reuse_values               = local.reuse_values
+  skip_crds                  = local.skip_crds
+  timeout                    = local.timeout
   values                     = [local.values]
-  verify                     = tobool(lookup(var.extras, "verify", false))
-  version                    = lookup(var.extras, "version", null)
-  wait                       = tobool(lookup(var.extras, "wait", true))
-  wait_for_jobs              = tobool(lookup(var.extras, "wait_for_jobs", true))
+  verify                     = local.verify
+  version                    = local.version
+  wait                       = local.wait
+  wait_for_jobs              = local.wait_for_jobs
   dynamic "set" {
-    for_each = concat(
-      anytrue([(var.no_set_defaults), contains(var.exempt_values, var.chart)]) ? [] : [for server in var.dns_servers : {
-        name  = "podDnsConfig.nameservers[${index(var.dns_servers, server)}]"
-        value = server
-      }],
-      anytrue([!(var.chart == "nfs-subdir-external-provisioner")]) ? [
-        {
-          name  = "podDnsConfig.searches[0]"
-          value = var.domain
-        },
-      ] : [],
-      lookup(var.extras, "set", []),
-    )
+    for_each = local.set
     content {
       name  = set.value.name
-      value = set.value.value
       type  = lookup(set.value, "type", "string")
+      value = set.value.value
     }
   }
   dynamic "set_sensitive" {
-    for_each = concat(
-      lookup(var.extras, "set_sensitive", [])
-    )
+    for_each = local.set_sensitive
     content {
       name  = set_sensitive.value.name
-      value = set_sensitive.value.value
       type  = lookup(set_sensitive.value, "type", "string")
+      value = set_sensitive.value.value
     }
   }
   dynamic "postrender" {
-    for_each = concat(
-      lookup(var.extras, "postrender", [])
-    )
-    content {
-      binary_path = postrender.value.binary_path
-    }
-  }
-  lifecycle {
-    ignore_changes = [status]
+    for_each = local.postrender
+    content { binary_path = postrender.value.binary_path }
   }
 }
 
 resource "kubectl_manifest" "ingress-route" {
   count           = can(var.extras.ingress) ? 1 : 0
-  yaml_body       = yamlencode(local.ingress)
   validate_schema = true
+  yaml_body       = yamlencode(local.ingress)
   depends_on      = [helm_release.chart]
 }
