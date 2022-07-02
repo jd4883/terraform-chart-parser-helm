@@ -24,7 +24,7 @@ locals {
   repository_username        = lookup(var.extras, "repository_username", null)
   reset_values               = tobool(lookup(var.extras, "reset_values", false))
   reuse_values               = tobool(lookup(var.extras, "reuse_values", true))
-  set = distinct(
+  set = toset(
     concat(
       anytrue([(var.no_set_defaults), contains(var.exempt_values, var.chart)]) ? [] : [for server in var.dns_servers : {
         name  = "podDnsConfig.nameservers[${index(var.dns_servers, server)}]"
@@ -39,7 +39,7 @@ locals {
       lookup(var.extras, "set", []),
     )
   )
-  set_sensitive = distinct(concat(lookup(var.extras, "set_sensitive", [])))
+  set_sensitive = toset(concat(lookup(var.extras, "set_sensitive", [])))
   skip_crds     = tobool(lookup(var.extras, "skip_crds", false))
   timeout       = lookup(var.extras, "timeout", 60)
   verify        = tobool(lookup(var.extras, "verify", false))
