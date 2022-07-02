@@ -39,7 +39,6 @@ locals {
       lookup(var.extras, "set", []),
     )
   )
-  set_sensitive = toset(concat(lookup(var.extras, "set_sensitive", [])))
   skip_crds     = tobool(lookup(var.extras, "skip_crds", false))
   timeout       = lookup(var.extras, "timeout", 60)
   verify        = tobool(lookup(var.extras, "verify", false))

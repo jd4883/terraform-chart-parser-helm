@@ -42,11 +42,11 @@ resource "helm_release" "chart" {
     }
   }
   dynamic "set_sensitive" {
-    for_each = local.set_sensitive
+    for_each = concat(lookup(var.extras, "set_sensitive", []))
     content {
       name  = set_sensitive.value.name
       type  = lookup(set_sensitive.value, "type", "string")
-      value = set_sensitive.value.value
+      value = sensitive(set_sensitive.value.value)
     }
   }
   dynamic "postrender" {
