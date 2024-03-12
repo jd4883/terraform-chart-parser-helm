@@ -57,8 +57,7 @@ locals {
   domain = lookup(var.extras, "domain", var.domain)
   values = yamlencode(
     merge(
-      anytrue([(var.no_set_defaults), contains(var.exempt_values, var.chart)]) ? {} : var.env,
-      { image = var.image },
+      anytrue([(var.no_set_defaults), contains(var.exempt_values, var.chart)]) ? {} : merge({ image = var.image }, var.env),
       lookup(var.extras, "values", {}),
     )
   )

@@ -30,18 +30,8 @@ variable "dns_servers" {
 }
 
 variable "env" {
-  default = {
-    env = {
-      PGID = 1000
-      PUID = 1000
-      TZ   = "America/Los_Angeles"
-    }
-  }
-  type = map(object({
-    PUID = number
-    PGID = number
-    TZ   = string
-  }))
+  default = { env = { PGID = 1000, PUID = 1000, TZ = "America/Los_Angeles" } }
+  type    = object({ env = optional(map(string), {}) }, {})
 }
 
 variable "image" {
